@@ -28,7 +28,31 @@
     font-size: 24px;
     text-align: center;
     color: #0b5fff;
-    margin-bottom: 24px;
+    margin-bottom: 18px;
+  }
+  .mode-toggle {
+    display: flex;
+    background: #eef2f7;
+    border-radius: 10px;
+    padding: 4px;
+    margin-bottom: 22px;
+  }
+  .mode-toggle button {
+    flex: 1;
+    border: none;
+    background: transparent;
+    font-size: 14px;
+    font-weight: 600;
+    color: #5a6a7d;
+    padding: 10px 6px;
+    border-radius: 8px;
+    cursor: pointer;
+    font-family: inherit;
+  }
+  .mode-toggle button.active {
+    background: #0b5fff;
+    color: #ffffff;
+    box-shadow: 0 2px 6px rgba(11,95,255,0.3);
   }
   label {
     display: block;
@@ -86,7 +110,11 @@
 <body>
   <div class="card">
     <h1>Percentage Calculator</h1>
-    <label for="amount">Amount (&#8377;)</label>
+    <div class="mode-toggle">
+      <button id="modeAmount" class="active" type="button">From Amount</button>
+      <button id="modeTotal" type="button">From Total</button>
+    </div>
+    <label for="amount" id="amountLabel">Amount (&#8377;)</label>
     <div class="input-wrap">
       <span class="prefix">&#8377;</span>
       <input id="amount" type="number" inputmode="decimal" placeholder="0" min="0">
@@ -102,7 +130,7 @@
         <div class="val" id="profit">&#8377;0</div>
       </div>
       <div class="result-box total">
-        <div class="lbl">Total (Amount + Profit)</div>
+        <div class="lbl" id="secondLabel">Total (Amount + Profit)</div>
         <div class="val" id="total">&#8377;0</div>
       </div>
     </div>
@@ -113,18 +141,44 @@
   var percentEl = document.getElementById('percent');
   var profitEl = document.getElementById('profit');
   var totalEl = document.getElementById('total');
+  var amountLabel = document.getElementById('amountLabel');
+  var secondLabel = document.getElementById('secondLabel');
+  var modeAmountBtn = document.getElementById('modeAmount');
+  var modeTotalBtn = document.getElementById('modeTotal');
+  var mode = 'amount';
   function fmt(n) {
     if (!isFinite(n)) n = 0;
     var rounded = Math.round(n * 100) / 100;
-    return '\u20B9' + rounded.toLocaleString('en-IN', { maximumFractionDigits: 2 });
+    return '₹' + rounded.toLocaleString('en-IN', { maximumFractionDigits: 2 });
   }
   function calc() {
     var amount = parseFloat(amountEl.value) || 0;
     var percent = parseFloat(percentEl.value) || 0;
     var profit = amount * percent / 100;
     profitEl.textContent = fmt(profit);
-    totalEl.textContent = fmt(amount + profit);
+    if (mode === 'total') {
+      totalEl.textContent = fmt(amount - profit);
+    } else {
+      totalEl.textContent = fmt(amount + profit);
+    }
   }
+  function setMode(m) {
+    mode = m;
+    if (m === 'total') {
+      amountLabel.innerHTML = 'Total (₹)';
+      secondLabel.textContent = 'Remaining (Total − Profit)';
+      modeTotalBtn.classList.add('active');
+      modeAmountBtn.classList.remove('active');
+    } else {
+      amountLabel.innerHTML = 'Amount (₹)';
+      secondLabel.textContent = 'Total (Amount + Profit)';
+      modeAmountBtn.classList.add('active');
+      modeTotalBtn.classList.remove('active');
+    }
+    calc();
+  }
+  modeAmountBtn.addEventListener('click', function() { setMode('amount'); });
+  modeTotalBtn.addEventListener('click', function() { setMode('total'); });
   amountEl.addEventListener('input', calc);
   percentEl.addEventListener('input', calc);
   calc();
